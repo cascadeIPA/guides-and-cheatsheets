@@ -1,0 +1,209 @@
+### TERMUX HOST & PROOT UBUNTU ###
+# ==============================================================================
+# GIT WORKFLOW: LINEAR PROCEDURAL GUIDE
+# ==============================================================================
+# This tutorial is structured chronologically. It follows the exact order 
+# a developer takes from setting up a machine to completing a feature.
+
+# ------------------------------------------------------------------------------
+# PHASE 1: ONE-TIME MACHINE SETUP (Configuration & Authentication)
+# ------------------------------------------------------------------------------
+# Git configuration operates on three hierarchical levels:
+# System (Base) < Global (User) < Repository (Local).
+# Git configuration operates on three hierarchical levels. 
+# System acts as the base, being overwritten by Global, and both are 
+# overwritten by the local Repository configuration.
+
+# Examples of the three levels:
+# git config --system user.name "System User"   # Applies to all users on the OS
+# git config --global user.name "Global User"   # Applies to your user account
+# git config user.name "Repo User"              # Applies only to the current repo
+
+# 1A. Set your standard identity globally:
+git config --global user.name "Your Name"
+git config --global user.email "youremail@example.com"
+
+# 1B. Set Vim as the default core editor instead of GUI editors:
+git config --global core.editor "vim"
+
+# 1C. Standard: Convert CRLF (\r\n) to LF (\n) to prevent line-ending 
+# conflicts between Linux (Termux/PRoot) and Windows collaborators:
+git config --global core.autocrlf input
+
+# 1D. Standard: Change the default initialization branch to "main":
+git config --global init.defaultBranch 'main'
+
+# 1E. SSH Authentication Setup (Safer than HTTPS in headless environments):
+
+# Generate a dedicated SSH key for GitHub
+ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_github -C "github-$(date +%Y%m%d)"
+
+# Enforce strict permissions
+
+chmod 600 ~/.ssh/id_ed25519_github
+chmod 644 ~/.ssh/id_ed25519_github.pub
+
+# Update the GitHub block in ~/.ssh/config to enforce the cipher
+# Ensure this is placed BEFORE your "Host *" global fallback block.
+
+cat << 'EOF' >> ~/.ssh/config
+
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519_github
+    IdentitiesOnly yes
+    Ciphers chacha20-poly1305@openssh.com
+EOF
+
+chmod 600 ~/.ssh/config
+
+# Output the public key to copy and paste into your GitHub account (Settings -> SSH and GPG keys)
+
+cat ~/.ssh/id_ed25519_github.pub
+
+# Review your applied configuration:
+# git config --list --show-origin
+
+
+# ------------------------------------------------------------------------------
+# PHASE 2: PROJECT INITIALIZATION & PROTECTION
+# ------------------------------------------------------------------------------
+
+# OPTION A: Start a brand new project
+mkdir folderName
+cd folderName
+git init
+
+# Link the local repository to a remote server. ("origin" is the standard name)
+git remote add origin git@github.com:your-username/another-repo.git
+
+# OPTION B: Clone an existing remote repository
+# git clone git@github.com:your-username/another-repo.git
+# cd another-repo
+
+# Create a .gitignore file IMMEDIATELY after initialization.
+# This prevents accidentally tracking secrets, binaries, or system files.
+echo "node_modules/" >> .gitignore
+echo ".env" >> .gitignore
+echo "secret_keys.txt" >> .gitignore
+
+
+# ------------------------------------------------------------------------------
+# PHASE 3: ISOLATING WORK (Branching)
+# ------------------------------------------------------------------------------
+# Never work directly on the 'main' branch. Always create a feature branch.
+
+# Check current local branch:
+git branch
+
+# Create and switch into a new branch (Modern standard uses 'switch'):
+git switch -c feature/new-module
+# git checkout -b feature/new-module  # Legacy equivalent
+
+
+# ------------------------------------------------------------------------------
+# PHASE 4: THE DEVELOPMENT LOOP (Editing & Checking Status)
+# ------------------------------------------------------------------------------
+# Create or modify files (writing fresh code):
+echo "New content" > feature-file.txt
+
+# Rename a file (Git tracks this as a move):
+# git mv old_name.txt new_name.txt
+
+# Delete an obsolete file:
+# git rm obsolete_file.txt
+
+# Check the state of the working directory (Shows untracked and modified files):
+git status
+# Short format status (useful for quick CLI scans):
+# git status -s
+
+# View the exact line-by-line differences you just typed before staging them:
+git diff
+
+
+# ------------------------------------------------------------------------------
+# PHASE 5: SNAPSHOTTING (Staging & Committing)
+# ------------------------------------------------------------------------------
+# Add specific files to the staging area (preparing them for a commit):
+git add feature-file.txt
+git add .gitignore
+
+# Always create a .gitignore file at the root of the project to prevent 
+# accidental commits of compiled binaries, secrets, or local configs.
+# 
+# Example:
+# echo ".env" >> .gitignore
+# echo "__pycache__/" >> .gitignore
+# git add .gitignore
+# git commit -m "chore: add .gitignore"
+
+# General Rule: Avoid 'git add .' as it blindly adds untracked junk files.
+
+# View the changes that are now staged and ready to be committed:
+git diff --staged
+
+# MISTAKE RECOVERY: If you accidentally staged a file, restore it to untracked:
+# git restore --staged feature-file.txt
+
+# MISTAKE RECOVERY: Discard local unstaged changes entirely (DESTRUCTIVE):
+# git restore feature-file.txt
+
+# Commit the staged changes to the branch history with a descriptive message:
+git commit -m "feat: add initial feature logic and gitignore"
+
+
+# ------------------------------------------------------------------------------
+# PHASE 6: PUBLISHING (Pushing to Remote)
+# ------------------------------------------------------------------------------
+# Send your local branch and its new commits to the remote server.
+# The '-u' (upstream) flag links your local branch to the remote branch.
+git push -u origin feature/new-module
+
+# For all future pushes on this branch, you only need to type:
+# git push
+
+
+# ------------------------------------------------------------------------------
+# PHASE 7: INTEGRATION (Merging & Conflict Resolution)
+# ------------------------------------------------------------------------------
+# Once the feature is complete and approved, merge it back into the main branch.
+
+# 7A. Switch back to the main branch:
+git switch main
+
+# 7B. Pull latest changes from the server to ensure your local main is up to date:
+git pull origin main
+
+# 7C. Execute the merge:
+git merge feature/new-module
+
+# 7D. IF CONFLICTS OCCUR (Git will halt the merge):
+#   1. Open the conflicting files manually in Vim.
+#   2. Look for <<<<<< ====== >>>>>> markers and edit the file to the desired state.
+#   3. Stage the manually resolved files:
+#      git add path/to/resolved_file.txt
+#   4. Commit the resolution (DO NOT run 'git merge' again):
+#      git commit -m "fix: resolve merge conflict in resolved_file.txt"
+
+# 7E. Push the updated main branch to the remote server:
+git push origin main
+
+
+# ------------------------------------------------------------------------------
+# PHASE 8: AUDITING (Logs)
+# ------------------------------------------------------------------------------
+# View standard commit history (Press 'q' to exit):
+git log
+
+# View a condensed, single-line commit history showing branch topologies:
+git log --oneline --graph --decorate --all
+
+# (Optional) Clean up local repository by deleting the merged feature branch:
+
+# git branch -d feature/new-module
+
+# branch -d branch-name (Safe Delete): Git verifies that all commits on the branch have been successfully merged into the current branch (or an upstream remote). If there are unmerged changes, Git aborts the operation and warns you to prevent accidental data loss.
+
+# git branch -D branch-name (Force Delete): This acts as an absolute override. Git deletes the branch immediately without checking its merge status. Any unmerged commits unique to that branch become orphaned and are effectively lost.

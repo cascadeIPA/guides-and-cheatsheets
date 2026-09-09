@@ -1,0 +1,55 @@
+Potential edge cases, system limits, or failure states:
+Force pushing is a destructive action that irreversibly overwrites the remote repository history. If other developers share this repository, their local branches will become desynchronized and broken.
+Uncommitted local changes will be lost during branch deletion if not staged and committed prior to executing these commands.
+The default branch name is assumed to be 'main'. If the repository uses 'master', the branch deletion and renaming commands will fail and must be adjusted accordingly.
+
+Step 1: Navigate to the Target Repository
+
+cd $REPO_DIR
+# cd: Changes the current working directory to the specified path containing the cloned repository.
+
+Step 2: Create a Local Backup Branch (Mandatory Safeguard)
+
+git branch backup-history
+# git branch: Creates a new branch from the current state.
+# backup-history: The name of the backup branch. This ensures the original commit history is preserved locally before destructive commands are executed.
+
+Step 3: Create an Orphan Branch
+
+git checkout --orphan temp-main
+# git checkout: Switches branches or restores working tree files.
+# --orphan: Creates a new branch completely disconnected from all previous commit history. The branch starts with no parent commits.
+# temp-main: The temporary name for the new clean branch.
+
+Step 4: Stage All Files
+
+git add -A
+# git add: Updates the index using the current content found in the working tree to prepare the content staged for the next commit.
+# -A: Stages all modifications, deletions, and new files across the entire repository.
+
+Step 5: Create the Initial Portfolio Commit
+
+git commit -m "Initial portfolio commit"
+# git commit: Records changes to the repository.
+# -m: Bypasses the text editor and passes the commit message directly inline.
+
+Step 6: Delete the Original Main Branch
+
+git branch -D main
+# git branch: Manages branches.
+# -D: Forcefully deletes the specified branch (main), discarding its commit history entirely.
+
+Step 7: Rename the Orphan Branch
+
+git branch -m main
+# git branch: Manages branches.
+# -m: Renames the current branch (temp-main) to the newly specified name (main).
+
+Step 8: Force Push the Clean History to GitHub
+
+git push -f origin main
+# git push: Updates remote refs along with associated objects.
+# -f: Forcefully overwrites the remote repository's branch with the new local branch, destroying the remote history.
+# origin: The default name of the remote repository connection.
+# main: The branch being pushed.
+

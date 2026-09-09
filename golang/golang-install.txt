@@ -1,0 +1,86 @@
+# ==============================================================================
+# Golang-Installation
+# ==============================================================================
+# [ SERVER / PROOT UBUNTU ]
+# Description: Enterprise standard installation, multi-versioning, and removal of Go.
+# 
+# ARCHITECTURE NOTE:
+# - For GCP Servers (x86_64), use the 'linux-amd64' tarball.
+# - For Android PRoot (ARM), use the 'linux-arm64' tarball.
+# - For Native Termux, skip this entirely and use: pkg install golang
+
+# ------------------------------------------------------------------------------
+# 1. INSTALLATION & UPGRADE (System-wide)
+# ------------------------------------------------------------------------------
+# Step 1: Remove any previous Go installation to prevent version conflicts.
+sudo rm -rf /usr/local/go
+
+# Step 2: Download the latest target binary (replace 1.22.x with current version).
+wget https://go.dev/dl/go1.22.0.linux-amd64.tar.gz
+
+# Step 3: Extract the archive into /usr/local (Industry standard location).
+sudo tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz
+
+# Step 4: Cleanup the downloaded archive.
+rm go1.22.0.linux-amd64.tar.gz
+
+# ------------------------------------------------------------------------------
+# 2. ENVIRONMENT CONFIGURATION ($PATH)
+# ------------------------------------------------------------------------------
+# WORKFLOW CORRECTION: Do NOT use /etc/environment. Do NOT manually export GOPATH 
+# unless strictly required (Go defaults to ~/go). A system reboot is NOT required.
+
+# Create a system-wide profile script to automatically append Go to the $PATH 
+# for all users upon login.
+cat << 'EOF' | sudo tee /etc/profile.d/golang.sh
+export PATH="$PATH:/usr/local/go/bin"
+EOF
+
+# Make the profile script executable.
+sudo chmod 644 /etc/profile.d/golang.sh
+
+# Apply the path to your current terminal session immediately:
+source /etc/profile.d/golang.sh
+
+# Verify successful installation:
+go version
+
+# ------------------------------------------------------------------------------
+# 3. INSTALLING EXTRA GO VERSIONS (Multi-versioning)
+# ------------------------------------------------------------------------------
+# WORKFLOW CORRECTION: 'go get' is deprecated for installing binaries. 
+# Use 'go install' with the '@latest' suffix to manage side-by-side versions.
+# This requires your primary Go version to already be installed.
+
+# Step 1: Install the wrapper binary for the specific version (e.g., 1.20.5).
+# Note: This installs to your default $GOPATH/bin (usually ~/go/bin).
+go install golang.org/dl/go1.20.5@latest
+
+# Step 2: Ensure your local bin is in your path (if not already done).
+export PATH="$PATH:$HOME/go/bin"
+
+# Step 3: Command the wrapper to download and extract the actual Go SDK.
+go1.20.5 download
+
+# You can now execute this specific version alongside your primary installation:
+go1.20.5 version
+go1.20.5 build main.go
+
+# To uninstall an extra version, locate its internal GOROOT and delete it, 
+# then remove the wrapper binary:
+# rm -rf $(go1.20.5 env GOROOT)
+# rm ~/go/bin/go1.20.5
+
+# ------------------------------------------------------------------------------
+# 4. UNINSTALLING PRIMARY GO
+# ------------------------------------------------------------------------------
+# Step 1: Remove the primary system-wide Go directory.
+sudo rm -rf /usr/local/go
+
+# Step 2: Remove the profile script so it stops appending to $PATH.
+sudo rm /etc/profile.d/golang.sh
+
+# Step 3 (Optional): Remove the user's Go workspace (clears cache and downloaded packages).
+# WARNING: This deletes all modules and binaries downloaded via 'go install'.
+rm -rf ~/go
+

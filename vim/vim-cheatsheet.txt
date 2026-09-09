@@ -1,0 +1,113 @@
+# ==============================================================================
+# Linux-CheatSheet-Vim.txt
+# ==============================================================================
+# [ LINUX ENVIRONMENT ]
+# Description: Standard Vim text editor commands, navigation, and editing.
+# Concept: Vim operates in modes. It always opens in 'Normal Mode' for navigation 
+# and manipulation. You must switch to 'Insert Mode' to type regular text.
+
+# ------------------------------------------------------------------------------
+# 1. MODES & GLOBAL COMMANDS (Normal Mode)
+# ------------------------------------------------------------------------------
+Esc                     # Return to Normal Mode (Aborts current action/insert).
+:w                      # Write (Save) changes.
+:q                      # Quit (Will fail if there are unsaved changes).
+:wq                     # Write (Save) and Quit.
+:q!                     # Force Quit (Discard all unsaved changes).
+:qa!                    # Force Quit ALL open vim windows/splits without saving.
+:set mouse=a            # Enable mouse support (Click to navigate/resize).
+:set nonumber           # Hide line numbers (Useful for clean copy-pasting).
+:set number             # Show line numbers.
+
+# Enable paste mode (prevents auto-indentation from breaking formatting when pasting from the OS)
+:set paste
+
+# Disable paste mode (restores normal auto-indent behavior)
+:set nopaste
+
+
+# ------------------------------------------------------------------------------
+# 2. NAVIGATION (Normal Mode)
+# ------------------------------------------------------------------------------
+# Basic directional movement (Avoid arrow keys in enterprise environments):
+h                       # Move Left
+j                       # Move Down
+k                       # Move Up
+l                       # Move Right
+
+# Word & Line movement:
+w                       # Move to the beginning of the next word (3w = jump 3 words).
+e                       # Move to the end of the current word (3e = jump 3 ends).
+b                       # Move backward to the beginning of the previous word.
+0                       # (Zero) Move cursor to the absolute start of the line.
+^                       # Move cursor to the first non-blank character of the line.
+$                       # Move cursor to the absolute end of the line.
+
+# Document movement:
+gg                      # Jump to the very first line of the document.
+G                       # Jump to the very last line of the document.
+50G                     # Jump exactly to line 50.
+
+# ------------------------------------------------------------------------------
+# 3. ENTERING INSERT MODE
+# ------------------------------------------------------------------------------
+i                       # Insert: Begin typing BEFORE the cursor.
+I                       # Prefix: Jump to the START of the line and begin typing.
+a                       # Append: Begin typing AFTER the cursor.
+A                       # Append: Jump to the END of the line and begin typing.
+o                       # Open: Create a new blank line BELOW the cursor and insert.
+O                       # Open: Create a new blank line ABOVE the cursor and insert.
+
+# ------------------------------------------------------------------------------
+# 4. EDITING & DELETING (Normal Mode)
+# ------------------------------------------------------------------------------
+# Undo & Redo:
+u                       # Undo the last action.
+U                       # Undo all recent changes on the current line.
+Ctrl + r                # Redo the last undone action.
+
+# Replacing:
+r{char}                 # Replace the single character under the cursor with {char}.
+R                       # Enter Replace Mode (Overwrite text continuously).
+
+# Deleting (In Vim, deleting text also 'Cuts' it into the clipboard buffer):
+x                       # Delete the single character under the cursor.
+d                       # Cut/Delete operator (Requires a motion like 'w' or 'e').
+dw                      # Cut/Delete from cursor to the start of the next word.
+de                      # Cut/Delete from cursor to the end of the current word.
+d$                      # Cut/Delete from cursor to the end of the line.
+D                       # (Capital D) Exact same as 'd$' - Delete to end of line.
+dd                      # Cut/Delete the entire current line (3dd = cut 3 lines).
+
+# Changing (Deletes the target and immediately drops you into Insert Mode):
+ce                      # Change to end of word (Deletes word, enters insert mode).
+cw                      # Change to next word.
+c$                      # Change to the end of the line.
+
+# Pasting:
+p                       # Paste the last deleted/copied text AFTER the cursor.
+P                       # Paste the last deleted/copied text BEFORE the cursor.
+
+# ------------------------------------------------------------------------------
+# 5. VISUAL MODE (Selecting Text)
+# ------------------------------------------------------------------------------
+v                       # Enter Visual Mode (Select text character by character).
+V                       # Enter Visual Line Mode (Select entire lines).
+Ctrl + v                # Enter Visual Block Mode (Select vertical columns of text).
+y                       # Yank (Copy) the visually selected text.
+d                       # Cut/Delete the visually selected text.
+
+# ------------------------------------------------------------------------------
+# 6. SEARCH & REPLACE (Command Mode)
+# ------------------------------------------------------------------------------
+/pattern                # Search forward for 'pattern' in the document.
+?pattern                # Search backward for 'pattern' in the document.
+n                       # Jump to the next search match.
+N                       # Jump to the previous search match.
+
+# Search and Replace Syntax (Substitute):
+:s/old/new/             # Replace the FIRST occurrence of 'old' with 'new' on the current line.
+:s/old/new/g            # Replace ALL occurrences of 'old' with 'new' on the current line.
+:%s/old/new/g           # Replace ALL occurrences of 'old' with 'new' in the ENTIRE document.
+:%s/old/new/gc          # Replace in entire document, but prompt for (c)onfirmation each time.
+

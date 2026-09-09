@@ -1,0 +1,32 @@
+# ==============================================================================
+# Linux-Files-Java-Archives.txt
+# ==============================================================================
+# [ LINUX ENVIRONMENT ]
+# Description: Managing Java Archive files (.jar). 
+# Requires a Java Runtime Environment (JRE) to execute.
+
+# ------------------------------------------------------------------------------
+# EXECUTION
+# ------------------------------------------------------------------------------
+# Run a compiled Java application packaged as a JAR.
+java -jar application.jar
+
+# Run a JAR with explicit memory allocation (e.g., 512MB max heap)
+java -Xmx512M -jar application.jar
+
+# ------------------------------------------------------------------------------
+# EXTRACTION & INSPECTION
+# ------------------------------------------------------------------------------
+# A .jar file is fundamentally a specialized .zip file. 
+
+# List the contents of the JAR without extracting
+jar tf application.jar
+
+# Extract all contents using the Java jar utility
+# -x: extract
+# -f: specify filename
+jar xf application.jar
+
+# Alternatively, standard unzip can extract JAR files
+unzip application.jar -d /path/to/extraction_directory/
+

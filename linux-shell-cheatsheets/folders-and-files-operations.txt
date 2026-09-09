@@ -1,0 +1,62 @@
+# ==============================================================================
+# Folders-and-Files-Operations
+# ==============================================================================
+# [ LINUX ENVIRONMENT ]
+# Description: Creating, moving, copying, and deleting files and directories.
+
+# ------------------------------------------------------------------------------
+# DIRECTORY CREATION
+# ------------------------------------------------------------------------------
+# Create a standard directory.
+mkdir "new_folder"
+
+# Create a directory and automatically create any missing parent directories.
+mkdir -p "/path/to/new_folder"
+
+# Create a directory path and apply permissions (777) ONLY to the final directory.
+# (Parent directories get default system permissions. Does not update existing dirs).
+mkdir -p -m 777 "/path/to/new_folder"
+
+# Create a directory and set its permissions. If it exists, updates permissions.
+install -d -m 700 /path/to/new_folder
+
+# Copy a file, create its destination directory path if missing, and set file permissions.
+# Created directories will use default permissions (755).
+install -D -m 700 /path/to/source_file.txt /path/to/destination/copied_file.txt
+
+# ------------------------------------------------------------------------------
+# MOVING & RENAMING (mv)
+# ------------------------------------------------------------------------------
+# Move a file into another directory.
+mv "~/documents/file.txt" "~/documents/new_folder/"
+
+# Rename a file (Move it to the same location with a different name).
+mv "~/documents/file.txt" "~/documents/renamed_file.txt"
+
+# Move a file two directories up.
+mv "~/documents/file.txt" ../../
+
+# ------------------------------------------------------------------------------
+# COPYING (cp)
+# ------------------------------------------------------------------------------
+# Copy a file.
+cp source.txt destination.txt
+
+# Copy an entire directory recursively (Required for folders).
+cp -r /source_folder/ /destination_folder/
+
+# ------------------------------------------------------------------------------
+# DELETION (rm / rmdir)
+# ------------------------------------------------------------------------------
+# Remove an empty directory.
+rmdir "directoryName"
+# Alternatively:
+rm -d "directoryName"
+
+# Force remove a file without asking for confirmation.
+rm -f /path/to/file
+
+# Force remove a directory and all of its contents recursively.
+# WARNING: This is highly destructive. Double-check your path before executing.
+rm -rf /path/to/directory/
+

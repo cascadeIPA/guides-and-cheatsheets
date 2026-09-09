@@ -1,0 +1,46 @@
+# ==============================================================================
+# Linux-Files-Tar-Archives.txt
+# ==============================================================================
+# [ LINUX ENVIRONMENT ]
+# Description: Managing .tar, .tar.gz (tgz), .tar.bz2, and .tar.xz archive files.
+# The 'tar' utility bundles multiple files into a single archive.
+
+# Common Flags:
+# -x : Extract files from an archive.
+# -c : Create a new archive.
+# -f : Specify the filename of the archive (must be the last flag before the filename).
+# -v : Verbose output (list files as they are processed).
+# -z : Filter the archive through gzip (.tar.gz / .tgz).
+# -j : Filter the archive through bzip2 (.tar.bz2).
+# -J : Filter the archive through xz (.tar.xz).
+# -C : Change directory before extracting (extract to a specific path).
+
+# ------------------------------------------------------------------------------
+# EXTRACTION
+# ------------------------------------------------------------------------------
+# Extract a standard tarball
+tar -xf archive.tar
+
+# Extract a gzip-compressed tarball (.tar.gz)
+tar -xzf archive.tar.gz
+
+# Extract a gzip-compressed tarball to a specific directory
+# The target directory must already exist.
+mkdir -p /path/to/destination
+tar -xzf archive.tar.gz -C /path/to/destination
+
+# Extract a bzip2-compressed tarball (.tar.bz2)
+tar -xjf archive.tar.bz2
+
+# Extract an xz-compressed tarball (.tar.xz)
+tar -xJf archive.tar.xz
+
+# ------------------------------------------------------------------------------
+# CREATION
+# ------------------------------------------------------------------------------
+# Create a gzip-compressed tarball from a directory
+tar -czf archive_name.tar.gz /path/to/directory/
+
+# Create a tarball excluding specific files
+tar -czf archive_name.tar.gz --exclude='*.log' /path/to/directory/
+

@@ -1,0 +1,94 @@
+# ==============================================================================
+# echo-and-IO-Redirection
+# ==============================================================================
+# [ LINUX ENVIRONMENT ]
+# Description: Managing standard output (stdout), standard error (stderr), and variables.
+
+# ------------------------------------------------------------------------------
+# PRINTING & VARIABLES
+# ------------------------------------------------------------------------------
+# Print text or the value of an environment variable to the terminal.
+echo $PATH
+echo $USER
+echo "Script execution completed."
+
+# ------------------------------------------------------------------------------
+# OUTPUT REDIRECTION (>, >>)
+# ------------------------------------------------------------------------------
+# Overwrite a file with new output (Creates the file if it does not exist).
+echo "New text" > file.txt
+
+# Append output to the end of an existing file (Does not overwrite).
+echo "Appended text" >> file.txt
+
+# ------------------------------------------------------------------------------
+# NULL ROUTING & ERROR HANDLING (/dev/null 2>&1)
+# ------------------------------------------------------------------------------
+# Command breakdown for silencing output:
+# >> /dev/null : Redirects standard output (stdout) into the system's "black hole".
+# 2>&1         : Redirects standard error (stderr, file descriptor 2) into standard 
+#                output (stdout, file descriptor 1).
+
+# Result: The command executes entirely silently. Neither success logs nor error 
+# warnings will be printed to the terminal. Useful for cron jobs and background scripts.
+ls -l file_ThatDoesNot_exists >> /dev/null 2>&1
+
+# ==============================================================================
+# Description: Advanced File Descriptors, Null Routing, and Error Handling.
+# ------------------------------------------------------------------------------
+# CORE CONCEPTS: FILE DESCRIPTORS (FD)
+# ------------------------------------------------------------------------------
+# Linux systems handle input and output using three standard data streams, 
+# identified by numeric File Descriptors:
+#   0 = Standard Input (stdin)   : Data fed into the command (e.g., keyboard).
+#   1 = Standard Output (stdout) : Normal, successful output of a command.
+#   2 = Standard Error (stderr)  : Error messages and diagnostic warnings.
+
+# /dev/null : A special system device file acting as a "black hole". Any data 
+#             written to this file is instantly discarded by the kernel.
+
+# ------------------------------------------------------------------------------
+# SCENARIO 1: SILENCE ONLY STANDARD OUTPUT (Keep Errors Visible)
+# ------------------------------------------------------------------------------
+# Use case: You only want to see if a script breaks.
+# By default, '>' only redirects FD 1 (stdout). Errors (FD 2) still print to the screen.
+
+ping -c 4 google.com > /dev/null
+# Result: The normal ping replies are hidden, but if the network is down, 
+# the "ping: unknown host" error will still appear on your screen.
+
+# ------------------------------------------------------------------------------
+# SCENARIO 2: SILENCE ONLY ERRORS (Keep Standard Output Visible)
+# ------------------------------------------------------------------------------
+# Use case: Searching the entire filesystem where "Permission denied" spam is expected.
+# Use '2>' to explicitly redirect ONLY FD 2 (stderr).
+
+find / -name "termux-open" 2> /dev/null
+# Result: Valid search results (stdout) print to your screen. All "Permission denied" 
+# or "Directory loop" warnings (stderr) are sent to the black hole.
+
+# ------------------------------------------------------------------------------
+# SCENARIO 3: SILENCE EVERYTHING (Absolute Silence)
+# ------------------------------------------------------------------------------
+# Use case: Background cron jobs or automated scripts where terminal spam is unwanted.
+# Order of operations is critical here:
+# 1. '> /dev/null' points stdout (1) to the black hole.
+# 2. '2>&1' points stderr (2) to wherever stdout (1) is currently pointing.
+
+ls -l /folder_that_does_not_exist > /dev/null 2>&1
+# Result: Complete silence. Nothing prints to the terminal.
+
+# Modern Bash Shortcut:
+# If you are strictly using Bash, '&>' is shorthand for "redirect both 1 and 2".
+ls -l /folder_that_does_not_exist &> /dev/null
+
+# ------------------------------------------------------------------------------
+# SCENARIO 4: LOGGING BOTH OUTPUT AND ERRORS TO A FILE
+# ------------------------------------------------------------------------------
+# Use case: You want a complete log of a script's execution for debugging, 
+# capturing both what it did correctly and where it failed.
+
+/usr/local/bin/my-backup-script.sh >> /var/log/backup.log 2>&1
+# Result: The script runs silently on the terminal, but BOTH standard output 
+# and error messages are appended to 'backup.log' in their correct execution order.
+

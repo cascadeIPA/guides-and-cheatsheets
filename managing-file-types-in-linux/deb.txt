@@ -1,0 +1,34 @@
+# ==============================================================================
+# Linux-Files-Debian-Packages.txt
+# ==============================================================================
+# [ PROOT UBUNTU / DEBIAN ENVIRONMENT ]
+# Description: Installing and managing precompiled Debian package files (.deb).
+# Note: These commands require root privileges or sudo.
+
+# ------------------------------------------------------------------------------
+# INSTALLATION (MODERN STANDARD)
+# ------------------------------------------------------------------------------
+# Using 'apt' to install local .deb files is the enterprise standard. 
+# Unlike dpkg, apt automatically resolves and downloads missing dependencies 
+# from your configured repositories. The './' prefix is mandatory.
+
+sudo apt install ./package-name.deb
+
+# ------------------------------------------------------------------------------
+# INSTALLATION (LEGACY / LOW-LEVEL)
+# ------------------------------------------------------------------------------
+# Using 'dpkg' installs the package but will fail if dependencies are missing.
+sudo dpkg -i package-name.deb
+
+# If dpkg fails due to missing dependencies, run this command to fix the broken state:
+sudo apt --fix-broken install
+
+# ------------------------------------------------------------------------------
+# REMOVAL & INSPECTION
+# ------------------------------------------------------------------------------
+# List contents of a .deb file before installing
+dpkg -c package-name.deb
+
+# Remove an installed package (use the software name, not the .deb filename)
+sudo apt remove package-name
+
