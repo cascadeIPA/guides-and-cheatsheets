@@ -1,0 +1,63 @@
+# ==============================================================================
+# Environment-Paths
+# ==============================================================================
+# [ TERMUX HOST & PROOT UBUNTU ]
+# Description: Modifying the $PATH variable so the shell can locate executable 
+# scripts and binaries without requiring their absolute paths.
+
+# ------------------------------------------------------------------------------
+# 1. TEMPORARY CHANGE (Current Session Only)
+# ------------------------------------------------------------------------------
+# Appends a custom directory to the end of your current $PATH.
+# This change vanishes the moment you disconnect or close the terminal session.
+# Enterprise Standard: Always wrap the assignment in double quotes to prevent 
+# word-splitting errors if a directory name contains spaces.
+
+export PATH="$PATH:$HOME/root/scripts"
+
+# Note: It is highly recommended to use the standard local binary directory 
+# instead of arbitrary folders like '~/root/scripts'.
+export PATH="$PATH:$HOME/.local/bin"
+
+# Prepending (Giving your custom scripts priority over system binaries):
+export PATH="$HOME/.local/bin:$PATH"
+
+# ------------------------------------------------------------------------------
+# 2. PERMANENT CHANGE: USER-LEVEL (Recommended & Safest)
+# ------------------------------------------------------------------------------
+# WORKFLOW CORRECTION: The tutorial suggested modifying `/etc/environment`. 
+# DO NOT add lines like `PATH=$PATH:~/scripts` to `/etc/environment`. 
+# `/etc/environment` is parsed by PAM (Pluggable Authentication Modules), not a shell. 
+# It does NOT evaluate variables like `$PATH` or tilde (`~`). Adding them there 
+# literally inserts the string "$PATH" into your path list, severely breaking 
+# system commands.
+
+# The enterprise standard for user-specific path additions is to append the 
+# export command to the user's `~/.bashrc` file.
+
+echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.bashrc
+
+# Apply the change to your currently open terminal session immediately:
+source ~/.bashrc
+
+# ------------------------------------------------------------------------------
+# 3. PERMANENT CHANGE: SYSTEM-WIDE (All Users)
+# ------------------------------------------------------------------------------
+# If a script must be globally executable by any user, the standard practice is 
+# to place a `.sh` file inside `/etc/profile.d/`. This ensures the path is safely 
+# evaluated by the shell during login.
+
+# [ PROOT UBUNTU - Executed as root ]
+cat << 'EOF' > /etc/profile.d/99-custom-paths.sh
+# System-wide custom binary paths
+export PATH="$PATH:/usr/local/custom_scripts"
+EOF
+chmod 644 /etc/profile.d/99-custom-paths.sh
+
+# [ TERMUX HOST ]
+cat << 'EOF' > $PREFIX/etc/profile.d/99-custom-paths.sh
+# System-wide custom binary paths
+export PATH="$PATH:$PREFIX/opt/custom_scripts"
+EOF
+chmod 644 $PREFIX/etc/profile.d/99-custom-paths.sh
+

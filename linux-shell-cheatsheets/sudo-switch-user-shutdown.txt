@@ -1,0 +1,37 @@
+# ==============================================================================
+# Privileges-and-Power
+# ==============================================================================
+# [ TERMUX HOST & PROOT UBUNTU ]
+# Description: Managing user context, privileges, and session termination.
+
+# ------------------------------------------------------------------------------
+# PRIVILEGE ESCALATION
+# ------------------------------------------------------------------------------
+# Execute a single command with root privileges.
+sudo command_name
+
+# Switch the current session to the root user.
+# The '-' ensures the root user's environment variables and paths are loaded.
+sudo su -
+
+# Switch the current session to a specific user (e.g., 'developer').
+# Enterprise Standard: Always use the '-' to initialize their specific environment.
+sudo su - developer
+
+# Exit a switched user session and return to the previous user.
+exit
+
+# ------------------------------------------------------------------------------
+# POWER MANAGEMENT (ANDROID / TERMUX CONTEXT)
+# ------------------------------------------------------------------------------
+# In a standard Linux server, this powers off the machine.
+shutdown now
+
+# WORKFLOW CORRECTION FOR TERMUX/PROOT: 
+# The 'shutdown' command will fail on Android without rooted kernel access. 
+# Inside PRoot, it will fail because there is no systemd init system.
+# To cleanly "shut down" your Termux or PRoot session, simply terminate all 
+# foreground processes (like SSH/VNC tunnels) and use the 'exit' command 
+# until the Termux app closes.
+exit
+

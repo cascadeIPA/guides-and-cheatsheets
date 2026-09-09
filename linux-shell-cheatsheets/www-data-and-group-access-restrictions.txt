@@ -1,0 +1,133 @@
+# ==============================================================================
+# Ownership-Access-Control
+# ==============================================================================
+# [ SERVER / PROOT UBUNTU ]
+# Description: Managing file ownership, user groups, and granular access control.
+# Note: Termux natively acts as a single-user environment. These group and ACL 
+# concepts apply primarily to your remote GCP Servers and PRoot Ubuntu environments.
+
+# -----------------------------------------------------------------------------
+# 1. THE 'www-data' GROUP & NGINX WEB HOSTING
+# -----------------------------------------------------------------------------
+# EXPLANATION:
+# On Debian/Ubuntu systems, 'www-data' is the default user and group assigned 
+# to web servers (like Nginx or Apache). 
+#
+# When Nginx starts, the main process runs as 'root' (to bind to ports 80/443), 
+# but it immediately spawns "worker processes" running as the unprivileged 
+# 'www-data' user. This is a crucial security barrier: if a hacker compromises 
+# your website, they only gain 'www-data' permissions, preventing them from 
+# modifying system files or reading other users' data.
+#
+# To securely manage a web directory, you assign the directory's User ownership 
+# to your developer account (so you can edit the code) and the Group ownership 
+# to 'www-data' (so Nginx can read and serve the files).
+
+# Example: Securing a web directory for Nginx
+# 1. Set User to 'developer' and Group to 'www-data' recursively (-R)
+sudo chown -R developer:www-data /var/www/html/
+
+# 2. Grant User full rights (7), Group read/execute (5), and Others nothing (0)
+sudo chmod -R 750 /var/www/html/
+
+# Result: Nginx can serve the site, you can edit it, and other local users 
+# are completely locked out.
+
+
+# -----------------------------------------------------------------------------
+# 2. CHOWN SYNTAX REFERENCE
+# -----------------------------------------------------------------------------
+# The 'chown' command modifies the user and/or group ownership of a file/directory.
+# Root privileges (sudo) are required to change file ownership.
+
+# Change ONLY the user ownership (Syntax: chown owner filename)
+sudo chown developer /var/www/html/index.html          
+
+# Change BOTH user and group ownership simultaneously (Syntax: chown owner:group)
+sudo chown developer:www-data /var/www/html/index.html                                                        
+
+# Change ONLY the group ownership (Syntax: chown :group filename)
+# Note: This has the exact same effect as the 'chgrp' command.
+sudo chown :www-data /var/www/html/index.html
+
+
+# -----------------------------------------------------------------------------
+# 3. METHOD 1: UNIX GROUPS (Industry Standard for Restricting Execution)
+# -----------------------------------------------------------------------------
+# EXPLANATION:
+# By default, apt installs binaries (like Node.js or Python) with execute 
+# permissions for ALL users (chmod 755). To restrict who can execute a binary, 
+# you change its group ownership and strip execution rights from 'others'.
+
+# 1. Find the exact path of the application
+which node
+# Output: /usr/bin/node
+                                                       
+# 2. Check current ownership and permissions (Before)  
+ls -l /usr/bin/node                                    
+# Output: -rwxr-xr-x 1 root root 81934336 Aug 30 /usr/bin/node                                 
+# (Owner: root, Group: root, Permissions: 755)
+
+# 3. Create a dedicated group for the application
+sudo groupadd node-users                                                                                      
+
+# 4. Change the group ownership of the binary from 'root' to the new group
+sudo chown root:node-users /usr/bin/node                                                                      
+
+# 5. Strip execute permissions from 'others' (changes 755 to 750)
+# Owner (root) keeps rwx, Group (node-users) keeps r-x, Others get ---
+sudo chmod 750 /usr/bin/node
+                                                       
+# 6. Verify new ownership and permissions (After)
+ls -l /usr/bin/node
+# Output: -rwxr-x--- 1 root node-users 81934336 Aug 30 /usr/bin/node                           
+
+# 7. Add the allowed user(s) to the group              
+sudo usermod -aG node-users developer                  
+# Note: The 'developer' user must log out and reconnect via SSH for the 
+# new group membership to take effect.                                                         
+
+
+# -----------------------------------------------------------------------------
+# 4. METHOD 2: ACCESS CONTROL LISTS (ACLs)
+# -----------------------------------------------------------------------------
+# EXPLANATION:
+# ACLs provide granular control to explicitly deny or allow specific users 
+# without modifying the base Unix group architecture.
+#
+# PRoot / Android Limitation Warning: ACLs require specific filesystem support. 
+# While they work perfectly on GCP Ubuntu servers, `setfacl` will likely fail 
+# inside PRoot Ubuntu on Android because the underlying Android filesystem mounts 
+# often do not support POSIX ACLs.
+
+# 1. Install ACL utilities                             
+sudo apt update && sudo apt install acl -y                                                                    
+
+# 2. Check current ACL rules (Before)
+getfacl /usr/bin/node
+# Expected output:                                     
+# # file: usr/bin/node                                 
+# # owner: root                                        
+# # group: root
+# user::rwx
+# group::r-x                                           
+# other::r-x                                           
+                                                       
+# 3. Explicitly DENY a specific user (overrides global allow permissions)                                     
+# Syntax: u:username:permissions (--- means no read, no write, no execute)                                    
+sudo setfacl -m u:sysadmin:--- /usr/bin/node           
+                                                       
+# 4. Verify the ACL rules applied to the binary (After)
+getfacl /usr/bin/node                                  
+# Expected output will now include an explicit restriction for 'sysadmin':
+# # file: usr/bin/node
+# # owner: root
+# # group: root
+# user::rwx                                            
+# user:sysadmin:---
+# mask::r-x
+# other::r-x
+
+# (Optional) To revert an ACL restriction and return to default behavior:
+# sudo setfacl -b /usr/bin/node
+

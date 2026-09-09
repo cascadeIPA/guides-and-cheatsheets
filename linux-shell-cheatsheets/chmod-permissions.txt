@@ -1,0 +1,76 @@
+# ==============================================================================
+# Chmod-Permissions
+# ==============================================================================
+# [ TERMUX HOST & PROOT UBUNTU ]
+# Description: Managing file and directory permissions using numeric (octal) modes.
+
+# ------------------------------------------------------------------------------
+# 1. THE NUMERIC (OCTAL) SYSTEM
+# ------------------------------------------------------------------------------
+# Permissions are calculated by adding the numeric values of granted rights.
+#   4 = Read (r)
+#   2 = Write (w)
+#   1 = Execute (x)
+#   0 = No permission (-)
+
+# ------------------------------------------------------------------------------
+# 2. THE USER CLASSES
+# ------------------------------------------------------------------------------
+# A complete permission mode uses a three-digit sequence, mapped left-to-right:
+#   Digit 1: Owner  (The user who owns the file)
+#   Digit 2: Group  (The user group assigned to the file)
+#   Digit 3: Others (All other users on the system)
+
+# Example Breakdown: 755
+#   Owner  : 7 (4 [read] + 2 [write] + 1 [execute])
+#   Group  : 5 (4 [read] + 0 [no write] + 1 [execute])
+#   Others : 5 (4 [read] + 0 [no write] + 1 [execute])
+
+# ------------------------------------------------------------------------------
+# 3. ENTERPRISE STANDARD PERMISSION BASELINES
+# ------------------------------------------------------------------------------
+
+# BASH SCRIPTS & EXECUTABLES (755)
+# Grants owner full rights (7). Grants group and others read/execute rights (5).
+# Required for executing user-created bash scripts.
+chmod 755 /path/to/script.sh
+
+# STANDARD CONFIGURATION FILES (644)
+# Grants owner read/write (6). Grants group and others read-only rights (4).
+# Used for standard files where public visibility is acceptable but modification 
+# must be restricted to the owner.
+chmod 644 /path/to/config.json
+
+# SENSITIVE DIRECTORIES (700)
+# Grants owner full rights (7). Denies all access to the group and others (0).
+# Required for securing sensitive directories like SSH configurations.
+chmod 700 ~/.ssh
+
+# PRIVATE KEYS & SECRETS (600)
+# Grants owner read/write rights (6). Denies all access to the group and others (0).
+# Strictly required for SSH private keys to prevent the SSH daemon from rejecting 
+# the key due to over-permissive visibility.
+chmod 600 ~/.ssh/id_ed25519
+
+# ------------------------------------------------------------------------------
+# 4. EDGE CASES, LIMITS & FAILURE STATES
+# ------------------------------------------------------------------------------
+
+# - Directory Execution Bit: 
+#   Directories strictly require the execute bit (1) to be accessed and traversed. 
+#   Applying a non-executable permission like 644 or 600 to a directory prevents 
+#   users from entering it with 'cd', regardless of their read permissions.
+
+# - Android Shared Storage (Termux Specific context): 
+#   Standard 'chmod' commands will have no effect on files stored in Android's 
+#   shared storage (e.g., /sdcard or ~/storage). Those filesystems (FAT32/exFAT) 
+#   do not support POSIX Linux permissions. 'chmod' only works reliably within 
+#   the Termux private data directory ($PREFIX) or inside the PRoot filesystem.
+
+# - Root Override & Extended Attributes: 
+#   The root user inherently bypasses standard permission restrictions. If an 
+#   "access denied" error occurs for root on a file that appears to have full 
+#   permissions, it typically indicates interference from extended file attributes 
+#   (e.g., 'chattr +i' making the file immutable) or mandatory access control 
+#   systems (e.g., SELinux).
+

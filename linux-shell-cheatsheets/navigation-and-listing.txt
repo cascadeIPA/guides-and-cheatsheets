@@ -1,0 +1,53 @@
+# ==============================================================================
+# Navigation-and-Listing
+# ==============================================================================
+# [ LINUX ENVIRONMENT ]
+# Description: Moving through the filesystem and inspecting directory contents.
+
+# ------------------------------------------------------------------------------
+# NAVIGATION (cd)
+# ------------------------------------------------------------------------------
+# Move up one directory level.
+cd ..
+
+# Move up two directory levels.
+cd ../../
+
+# Navigate to an absolute path.
+cd /path/to/documents
+
+# Toggle back to the immediately previous directory you were in.
+cd -
+
+# WORKFLOW CORRECTION: 'cd --' does NOT save the path to memory. It simply signals 
+# the "end of command options" (useful if a folder is literally named "-folder").
+# To actually save paths to memory, use 'pushd' and 'popd':
+
+# Save the current directory to memory and navigate to a new one:
+pushd /path/to/new/directory
+
+# Return to the saved directory from memory:
+popd
+
+# ------------------------------------------------------------------------------
+# LISTING (ls)
+# ------------------------------------------------------------------------------
+# List visible files and folders in the current directory.
+ls
+
+# List ALL files, including hidden system files (those starting with a dot '.').
+ls -a
+
+# [ ADDRESSING YOUR TODO: Details and Sorting ]
+# Long format: Shows permissions, owner, group, size (in bytes), and modified date.
+ls -l
+
+# Long format + Human-readable sizes (KB, MB, GB instead of raw bytes).
+ls -lh
+
+# Long format + Human-readable + Sort by modification time (newest first).
+ls -lht
+
+# Enterprise Standard: Combine everything to show all files with detailed info.
+ls -lah
+

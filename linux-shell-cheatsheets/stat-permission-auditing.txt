@@ -1,0 +1,60 @@
+# ==============================================================================
+# Stat-Auditing
+# ==============================================================================
+# [ LINUX ENVIRONMENT ]
+# Description: Auditing file ownership and permissions non-destructively using 'stat'.
+# 
+# EXPLANATION:
+# When troubleshooting access issues, executing recursive 'chown' or 'chmod' 
+# blindly modifies every file, destroying existing granular security baselines. 
+# The enterprise standard is to audit the current state first using 'find' 
+# combined with 'stat'.
+#
+# WORKFLOW CORRECTION: 
+# The original tutorial used 'find | xargs stat'. That approach breaks critically 
+# if filenames contain spaces, quotes, or newlines. The robust standard replaces 
+# basic 'xargs' with '-exec ... {} +' to safely handle all file name edge cases.
+
+# ------------------------------------------------------------------------------
+# 1. AUDITING OWNERSHIP (USER AND GROUP)
+# ------------------------------------------------------------------------------
+# Format Flags:
+# %U = User (Owner) name
+# %G = Group name
+# %n = File path/name
+
+# Recursively list the ownership of every file in the current directory.
+find . -type f -exec stat -c "%U:%G %n" {} +
+
+# Identify anomalies: List files that are NOT owned by 'developer:www-data'.
+# Note: The '^' and trailing space in the grep pattern ensure exact matches on 
+# the ownership string, preventing false positives if a filename contains the string.
+find . -type f -exec stat -c "%U:%G %n" {} + | grep -v "^developer:www-data "
+
+
+# ------------------------------------------------------------------------------
+# 2. AUDITING PERMISSIONS (OCTAL)
+# ------------------------------------------------------------------------------
+# Format Flags:
+# %a = Octal permissions (e.g., 755, 644)
+# %n = File path/name
+
+# Recursively list the octal permissions of every directory in the current path.
+find . -type d -exec stat -c "%a %n" {} +
+
+# Identify anomalies: List only directories that do NOT have the required 755 permissions.
+find . -type d -exec stat -c "%a %n" {} + | grep -v "^755 "
+
+# ------------------------------------------------------------------------------
+# 3. COMBINED AUDIT (Permissions + Ownership)
+# ------------------------------------------------------------------------------
+# Format Flags:
+# %a = Octal permissions
+# %U = User name
+# %G = Group name
+# %n = File path/name
+
+# Output format: [Permissions] [User]:[Group] [FilePath]
+# Example output: 644 root:root ./config.json
+find . -type f -exec stat -c "%a %U:%G %n" {} +
+

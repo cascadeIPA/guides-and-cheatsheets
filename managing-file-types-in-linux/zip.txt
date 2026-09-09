@@ -1,0 +1,33 @@
+# ==============================================================================
+# Linux-Files-Zip-Archives.txt
+# ==============================================================================
+# [ LINUX ENVIRONMENT ]
+# Description: Managing standard ZIP archives (.zip).
+# Requires 'zip' and 'unzip' packages (apt install zip unzip).
+
+# ------------------------------------------------------------------------------
+# EXTRACTION (UNZIP)
+# ------------------------------------------------------------------------------
+# Extract a zip file into the current directory
+unzip archive.zip
+
+# Extract a zip file into a specific target directory (creates directory if missing)
+unzip archive.zip -d /path/to/destination/
+
+# List the contents of a zip archive without extracting
+unzip -l archive.zip
+
+# ------------------------------------------------------------------------------
+# CREATION (ZIP)
+# ------------------------------------------------------------------------------
+# Create a zip archive containing specific files
+zip archive_name.zip file1.txt file2.txt
+
+# Recursively compress an entire directory
+# -r: recursive (include all subdirectories and files)
+zip -r archive_name.zip /path/to/directory/
+
+# Create a zip archive with password protection
+# -e: encrypt (prompts for password)
+zip -r -e secure_archive.zip /path/to/directory/
+

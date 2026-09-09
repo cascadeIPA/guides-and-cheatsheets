@@ -1,0 +1,30 @@
+# ==============================================================================
+# Linux-Files-Shell-Scripts.txt
+# ==============================================================================
+# [ LINUX ENVIRONMENT ]
+# Description: Executing shell scripts (.sh, .bash).
+
+# ------------------------------------------------------------------------------
+# METHOD 1: NATIVE EXECUTION (Requires executable permissions)
+# ------------------------------------------------------------------------------
+# This method relies on the shebang (e.g., #!/bin/bash) at the top of the script 
+# to determine the correct interpreter.
+
+# 1. Grant execution permissions to the owner
+chmod +x script-name.sh
+
+# 2. Execute the script from the current directory
+./script-name.sh
+
+# ------------------------------------------------------------------------------
+# METHOD 2: INTERPRETER OVERRIDE (Bypasses execution permissions)
+# ------------------------------------------------------------------------------
+# This method passes the script directly to the specified interpreter as an argument.
+# It does not require 'chmod +x'.
+
+# Execute strictly with standard sh
+sh script-name.sh
+
+# Execute with bash (preferred for scripts utilizing bash-specific syntax)
+bash script-name.sh
+
