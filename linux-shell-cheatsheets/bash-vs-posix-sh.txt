@@ -1,0 +1,183 @@
+# ==============================================================================
+# KEY SYNTAX AND FEATURE DIFFERENCES: BASH VS. POSIX SH
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. ARRAYS AND ASSOCIATIVE ARRAYS
+# ------------------------------------------------------------------------------
+
+# BASH: Native indexed and associative (key-value) arrays supported.
+# Indexed array:
+arr=("alpha" "beta" "gamma")
+echo "${arr[0]}"            # Access element: "alpha"
+echo "${arr[@]}"            # All elements
+echo "${#arr[@]}"           # Array length: 3
+arr+=("delta")              # Append element
+
+# Associative array (hashmap/dict):
+declare -A user_map
+user_map["admin"]="1000"
+echo "${user_map["admin"]}"
+
+# POSIX SH: No array data types exist.
+# Only positional parameters ($1, $2, ...) can behave like a single list:
+set -- "alpha" "beta" "gamma"
+echo "$1"                   # Access first element: "alpha"
+echo "$@"                   # All elements
+echo "$#"                   # Element count: 3
+# Appending requires re-setting positional arguments:
+set -- "$@" "delta"
+
+# ------------------------------------------------------------------------------
+# 2. STRING MANIPULATION AND SLICING
+# ------------------------------------------------------------------------------
+
+TEXT="system_backup_2026.tar.gz"
+
+# BASH: Native substring slicing and pattern replacement.
+echo "${TEXT:0:6}"          # Slicing: "system"
+echo "${TEXT//_/-}"         # Global replacement: "system-backup-2026.tar.gz"
+echo "${TEXT^^}"            # Uppercase transformation: "SYSTEM_BACKUP_2026.TAR.GZ"
+echo "${TEXT,,}"            # Lowercase transformation
+
+# POSIX SH: Only supports basic prefix/suffix trimming (${var#pattern}, ${var%pattern}).
+# Slicing, global replacement, or case modification requires external utilities:
+echo "$TEXT" | cut -c 1-6
+echo "$TEXT" | tr '_' '-'
+echo "$TEXT" | tr '[:lower:]' '[:upper:]'
+
+# ------------------------------------------------------------------------------
+# 3. PROCESS SUBSTITUTION
+# ------------------------------------------------------------------------------
+
+# BASH: Treats output of a process as a temporary FIFO/file descriptor.
+# Syntax: <(command) or >(command)
+diff -u <(sort file1.txt) <(sort file2.txt)
+
+# POSIX SH: Process substitution does NOT exist.
+# Requires temporary files or named pipes (FIFOs):
+sort file1.txt > /tmp/f1.tmp
+sort file2.txt > /tmp/f2.tmp
+diff -u /tmp/f1.tmp /tmp/f2.tmp
+rm -f /tmp/f1.tmp /tmp/f2.tmp
+
+# ------------------------------------------------------------------------------
+# 4. HERE-STRINGS
+# ------------------------------------------------------------------------------
+
+DATA="sample payload"
+
+# BASH: Direct string redirection via '<<<'.
+grep "payload" <<< "$DATA"
+
+# POSIX SH: Here-strings not supported; requires standard pipeline or Here-Doc.
+printf '%s\n' "$DATA" | grep "payload"
+# Or:
+grep "payload" <<EOF
+$DATA
+EOF
+
+# ------------------------------------------------------------------------------
+# 5. PIPELINES AND SUBSHELL VARIABLE SCOPE (LASTPIPE)
+# ------------------------------------------------------------------------------
+
+# POSIX SH: Every element of a pipeline runs in an isolated subshell.
+# Variables modified inside a piped loop lose their state outside the loop:
+COUNT=0
+printf "a\nb\nc\n" | while IFS= read -r line; do
+    COUNT=$((COUNT + 1))
+done
+echo "$COUNT"               # Prints: 0 (COUNT in parent shell remains unchanged)
+
+# POSIX SH Workaround (Redirect loop input directly without pipeline):
+COUNT=0
+while IFS= read -r line; do
+    COUNT=$((COUNT + 1))
+done <<EOF
+a
+b
+c
+EOF
+echo "$COUNT"               # Prints: 3
+
+# BASH: Can preserve variable scope using 'shopt -s lastpipe' (runs last command
+# in current shell, provided monitor mode/job control is disabled):
+shopt -s lastpipe
+COUNT=0
+printf "a\nb\nc\n" | while IFS= read -r line; do
+    COUNT=$((COUNT + 1))
+done
+echo "$COUNT"               # Prints: 3
+
+# ------------------------------------------------------------------------------
+# 6. PIPESTATUS / PIPE FAILURE TRACKING
+# ------------------------------------------------------------------------------
+
+# BASH: Tracks exit status of every command in a pipeline via PIPESTATUS array.
+cat /nonexistent/path | grep "pattern" | wc -l
+echo "${PIPESTATUS[0]}"     # Exit code of 'cat' (e.g., 1)
+echo "${PIPESTATUS[1]}"     # Exit code of 'grep' (e.g., 1)
+echo "${PIPESTATUS[2]}"     # Exit code of 'wc' (0)
+
+# POSIX SH: $? contains ONLY the exit status of the final command in the pipeline.
+# No standard mechanism exists to inspect intermediate exit codes in a pipe.
+
+# ------------------------------------------------------------------------------
+# 7. BRACE EXPANSION
+# ------------------------------------------------------------------------------
+
+# BASH: Expands arbitrary strings and numerical/character sequences.
+echo file{1,2,3}.txt        # Outputs: file1.txt file2.txt file3.txt
+echo {1..5}                 # Outputs: 1 2 3 4 5
+echo {01..10..2}            # Step expansion: 01 03 05 07 09
+
+# POSIX SH: Brace expansion is non-standard.
+# echo file{1,2,3}.txt prints the literal text: file{1,2,3}.txt
+# Requires manual loops or external utilities:
+seq 1 5
+
+# ------------------------------------------------------------------------------
+# 8. C-STYLE FOR LOOPS
+# ------------------------------------------------------------------------------
+
+# BASH: Supports 3-expression arithmetic loops.
+for ((i = 0; i < 5; i++)); do
+    echo "$i"
+done
+
+# POSIX SH: Supports only 'for var in list' syntax.
+# Numerical loops must use while + arithmetic expansion:
+i=0
+while [ "$i" -lt 5 ]; do
+    echo "$i"
+    i=$((i + 1))
+done
+
+# ------------------------------------------------------------------------------
+# 9. ANSI-C QUOTING ($'...')
+# ------------------------------------------------------------------------------
+
+# BASH: Interprets backslash-escaped characters inside $'...' strings.
+NL=$'\n'                    # Literal newline
+TAB=$'\t'                   # Literal tab
+HEX=$'\x41'                 # Literal character "A"
+
+# POSIX SH: Treats $'...' literally as the character '$' followed by '...'.
+# Escape sequences must be generated using 'printf':
+NL=$(printf '\n')
+TAB=$(printf '\t')
+
+# ------------------------------------------------------------------------------
+# 10. FUNCTION DECLARATION SYNTAX
+# ------------------------------------------------------------------------------
+
+# BASH: Accepts both POSIX and 'function' keyword syntax.
+function my_func {          # Valid in Bash; syntax error in POSIX sh
+    echo "executing"
+}
+
+# POSIX SH: Strict adherence to 'name()' format without the 'function' keyword.
+my_func() {
+    echo "executing"
+}
+

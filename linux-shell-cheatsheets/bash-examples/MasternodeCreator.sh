@@ -257,7 +257,7 @@ do
 #   -rpcpassword=<pw>
 #
 #"
-#	echo "" > myfile.txt
+#
 #
 #	echo "
 #	dash-cli -datadir -getinfo
