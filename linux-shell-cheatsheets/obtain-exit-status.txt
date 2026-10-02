@@ -1,0 +1,24 @@
+To trigger a conditional based on a specific exit code (such as 3), execute the command and immediately evaluate the special shell variable $?, which stores the exit status of the most recently executed command.
+
+# Execute the custom command
+kill -0 "$SSHD_PID" 2>/dev/null
+
+# Immediately capture the exit status to prevent it from being overwritten by subsequent commands
+EXIT_STATUS=$?
+
+# Evaluate the exact exit status
+if [ "$EXIT_STATUS" > 0 ]; then
+    rm -f "$SSHD_PID_FILE"
+fi
+
+Breakdown of execution:
+1. custom_kill -0 "$SSHD_PID" 2>/dev/null: The command runs and terminates, returning its exit status to the shell environment.
+2. EXIT_STATUS=$?: The special variable $? holds the integer exit code of the preceding command. It is immediately assigned to a designated variable because executing any subsequent command (even a test condition) will overwrite $?.
+3. [ "$EXIT_STATUS" -eq 3 ]: The shell built-in test evaluates if the captured exit status is numerically equal (-eq) to 3. If true, the conditional block executes.
+
+# An equivalent would be
+
+if ! kill -0 "$SSHD_PID" 2>/dev/null; then
+      rm -f "$SSHD_PID_FILE"
+fi
+
