@@ -62,8 +62,25 @@ chmod 600 ~/.ssh/config
 
 cat ~/.ssh/id_ed25519_github.pub
 
+
 # Review your applied configuration:
-# git config --list --show-origin
+
+git config --list --show-origin
+
+
+# Fetch and append GitHub's hashed ED25519 host key (State-changing)
+
+ssh-keyscan -H -t ed25519 github.com 2>/dev/null >> ~/.ssh/known_hosts
+
+
+# Enforce strict file permissions (State-changing)
+
+chmod 600 ~/.ssh/known_hosts
+
+
+# Verify the fingerprint matches SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU (Read-only)
+
+ssh-keygen -lv -F github.com
 
 
 # ------------------------------------------------------------------------------
